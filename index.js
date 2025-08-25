@@ -1,14 +1,12 @@
 import express from "express";
 const app = express();
 
-app.use((req, res, next) => {
-    console.log(req.method);
-    next();
-});
-
 app.get('/', (req, res) => {
     res.json({'message':"Bienvenidos a nuestra API REST!"});
 });
+
+import productsRouter from './src/routes/products.route.js';
+app.use('/api', productsRouter);
 
 import notFound from "./src/middlewares/not-found.js";
 app.use(notFound);
