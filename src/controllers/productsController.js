@@ -1,30 +1,21 @@
-const products = [
-  { id: "1", name: "Laptop Dell XPS 13", price: 1200, category: ["Electronics", "Computers"] },
-  { id: "2", name: "iPhone 14", price: 999, category: ["Electronics", "Smartphones"] },
-  { id: "3", name: "Auriculares Sony WH-1000XM5", price: 350, category: ["Electronics", "Audio"] },
-  { id: "4", name: "Cafetera Nespresso", price: 180, category: ["Home Appliances", "Kitchen"] },
-  { id: "5", name: "Silla Gamer Razer", price: 250, category: ["Furniture", "Gaming"] },
-  { id: "6", name: "Libro: Clean Code", price: 40, category: ["Books", "Programming"] },
-  { id: "7", name: "Camiseta Nike Dri-FIT", price: 30, category: ["Clothing", "Sportswear"] },
-  { id: "8", name: "Mochila North Face", price: 90, category: ["Accessories", "Travel"] },
-  { id: "9", name: "Monitor LG UltraWide 34\"", price: 500, category: ["Electronics", "Monitors"] },
-  { id: "10", name: "Teclado Mecánico Logitech G Pro", price: 120, category: ["Electronics", "Gaming"] }
-];
+import * as Model from "../models/Product.js";
 
-export const getAllProducts = (req, res) => {
+export const getAllProducts = async (req, res) => {
     const {category} = req.query;
+    let products = await Model.getAllProducts();
 
-    let productsFiltered = products;
+    if (category) products = filterProductsByCategory(category);
 
-    if (category) {
-        productsFiltered = products.filter(item => item.category.includes(category));
-    }
-
-    res.json(productsFiltered);
+    res.json(products);
 }
+
+const filterProductsByCategory = (category) => (
+     Model.getAllProducts().filter(item => item.category.includes(category))
+);
 
 export const searchProducts = (req, res) => {
     const {name} = req.query;
+    let products = Model.getAllProducts();
 
     if (!name) {
         res.status(400).json({error: 'El nombre es requerido'});
@@ -42,10 +33,8 @@ export const searchProducts = (req, res) => {
     res.json(productsFiltered);
 }
 
-export const getProductById = (req, res) => {
-    const id = parseInt(req.params.id);
-
-    const product = products.find( item => item.id == id );
+export const getProductById = async (req, res) => {
+    const product = await Model.getProductById(req.params.id);
 
     if (!product) {
         res.status(404).json({error: "No existe el producto"});
@@ -53,3 +42,21 @@ export const getProductById = (req, res) => {
 
     res.json(product);
 }
+
+export const createProduct = async (req, res) => {
+    const {name, price, category} = req.body;
+    const product = await Model.createProduct({name, price, category});
+    res.status(201).json(product);
+};
+
+export const deleteProduct = async (req, res) => {
+    const { id } = req.params;
+
+    const deleted = Model.deleteProduct(id);
+
+    if(! deleted) {
+        return res.status(404).json({error: 'Producto no encontrado'});
+    }
+
+    res.status(204).send();
+};
